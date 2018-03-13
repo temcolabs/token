@@ -14,13 +14,7 @@ contract CrowdSale is Ownable{
     using SafeMath for uint256;
     
     event TransferCoinToInvester(address invester, uint256 value);
-    event Received(Phase phase, address invester, uint256 value);
-    
-    /**
-     * Enum for current Phase
-     */
-    enum Phase { PHASE1, PHASE2, PHASE3, CROWDSALE_ENDED }
-    Phase public currentPhase;
+    event Received(address invester, uint256 value);
     
     TemcoToken temcoTokenContract;
     address public temcoTokenAddress;
@@ -42,62 +36,39 @@ contract CrowdSale is Ownable{
     /**
      * Crowd sale phase dealine. Sale will have total 3 phases.
      */
-    uint public phase1Deadline;
-    uint public phase2Deadline;
-    uint public phase3Deadline;
+    uint public crowdEndTime;
     
     /**
      * Mininum ether acceptance for invest
      */
-    uint public minimumEther = 0.1 * 1 ether;
+    uint public minimumEther;
     
     /**
      * Phase ether goal
      */
-    uint public phase1Goal = 1 * 1 ether;
-    uint public phase2Goal = 2 * 1 ether;
-    uint public phase3Goal = 3 * 1 ether;
+    uint public goal;
     
     /**
      * Phase ether to temco token conversion rate
      */
-    uint public phase1ConversionRate = 217392;
-    uint public phase2ConversionRate = 171429;
-    uint public phase3ConversionRate = 152542;
+    uint public conversionRate;
+    
     
     /**
      * Hold who and how much invest on phase
      */
-    mapping (address => uint256) public balanceOfPhase1;
-    function getBalanceOfPhase1(address index) public constant returns (uint256) {
-        return balanceOfPhase1[index];
+    mapping (address => uint256) public balances;
+    function getBalance(address index) public constant returns (uint256) {
+        return balances[index];
     }
     /**
      * No iteration for the mapping. Hold invester address to use iterate over maping
      */
-    address[] public balanceOfPhase1List;
-    function getBalanceOfPhase1List() public constant returns (address[]) {
-        return balanceOfPhase1List;
+    address[] public balanceList;
+    function getBalanceList() public constant returns (address[]) {
+        return balanceList;
     }
-    
-    mapping (address => uint256) public balanceOfPhase2;
-    function getBalanceOfPhase2(address index) public constant returns (uint256) {
-        return balanceOfPhase2[index];
-    }
-    address[] public balanceOfPhase2List;
-    function getBalanceOfPhase2List() public constant returns (address[]) {
-        return balanceOfPhase2List;
-    }
-    
-    mapping (address => uint256) public balanceOfPhase3;
-    function getBalanceOfPhase3(address index) public constant returns (uint256) {
-        return balanceOfPhase3[index];
-    }
-    address[] public balanceOfPhase3List;
-    function getBalanceOfPhase3List() public constant returns (address[]) {
-        return balanceOfPhase3List;
-    }
-    
+
     /**
      * KYC block list
      */
@@ -113,36 +84,38 @@ contract CrowdSale is Ownable{
     * @param temcoAddress temco token address
     * @param temcoTokenContractAddress temco token contract address
     * @param etherAddress wallet to transfer amount raised
-    * @param croudStartInMinutes crowd sale start time
-    * @param phase1durationInMinutes phase 1 duration
-    * @param phase2durationInMinutes phase 2 duration
-    * @param phase3durationInMinutes phase 3 duration
-    *
+    * @param crowdStartInMinutes crowd sale start time
+    * @param crowdDurationInMinutes crowd sale duration
+    * @param minEther minimum ether to receive
+    * @param fundingGoal funding goal for crowd sale
+    * @param rate conversion rate from ether to temco coi
     */
     function CrowdSale(
         address temcoAddress,
         address temcoTokenContractAddress,
         address etherAddress,
-        uint croudStartInMinutes,
-        uint phase1durationInMinutes,
-        uint phase2durationInMinutes,
-        uint phase3durationInMinutes
+        uint crowdStartInMinutes,
+        uint crowdDurationInMinutes,
+        uint minEther,
+        uint fundingGoal,
+        uint rate
     ) public {
         temcoTokenAddress = temcoAddress;
         temcoTokenContract = TemcoToken(temcoTokenContractAddress);
         temcoEtherAddress = etherAddress;
         //TODO: change to date
-        crowdStartTime = now + croudStartInMinutes * 1 minutes;
-        phase1Deadline = crowdStartTime + phase1durationInMinutes * 1 minutes;
-        phase2Deadline = phase1Deadline + phase2durationInMinutes * 1 minutes;
-        phase3Deadline = phase2Deadline + phase3durationInMinutes * 1 minutes;
+        crowdStartTime = now + crowdStartInMinutes * 1 minutes;
+        crowdEndTime = crowdStartTime + crowdDurationInMinutes * 1 minutes;
+        minimumEther = minEther * 0.1 ether;
+        goal = fundingGoal;
+        conversionRate = rate;
     }
     
     /**
    * @dev Reverts if not in crowdsale time range. 
    */
    modifier onlyWhileOpen {
-    require(now >= crowdStartTime && (currentPhase != Phase.CROWDSALE_ENDED));
+    require((now >= crowdStartTime && now < crowdEndTime) || (amountRaised < goal));
     _;
    }
    
@@ -150,7 +123,7 @@ contract CrowdSale is Ownable{
    * @dev Reverts if in crowdsale time range. 
    */
    modifier crowdSaleClosed{
-    require(now > phase3Deadline || (currentPhase == Phase.CROWDSALE_ENDED));
+    require(now > crowdEndTime || amountRaised >= goal);
     _;
    }
    
@@ -169,59 +142,14 @@ contract CrowdSale is Ownable{
     */
     function () payable public onlyWhileOpen minimumEtherRequired{
         uint amount = msg.value;
-        currentPhase = getCurrentPhase();
         
-        emit Received(currentPhase, msg.sender, amount); 
-		if(currentPhase == Phase.PHASE1) {
-		    balanceOfPhase1[msg.sender] = balanceOfPhase1[msg.sender].add(amount);
-            balanceOfPhase1List.push(msg.sender);
-            amountRaised += amount;
-            currentPhase = getCurrentPhase(); // update phase status after amount raised
-		}else if(currentPhase == Phase.PHASE2) {
-		    balanceOfPhase2[msg.sender] = balanceOfPhase2[msg.sender].add(amount);
-            balanceOfPhase2List.push(msg.sender);
-            amountRaised += amount;
-            currentPhase = getCurrentPhase(); // update phase status after amount raised
-		}else if(currentPhase == Phase.PHASE3) {
-		    balanceOfPhase3[msg.sender] = balanceOfPhase3[msg.sender].add(amount);
-            balanceOfPhase3List.push(msg.sender);
-            amountRaised += amount;
-            currentPhase = getCurrentPhase(); // update phase status after amount raised
-		}
+        amountRaised = amountRaised.add(amount);
+        balances[msg.sender] = balances[msg.sender].add(amount);
+        balanceList.push(msg.sender);
+        
+        emit Received(msg.sender, amount); 
+		
     }
-    
-    /**
-     * Get and update current phase depending on duration and goal on each phase
-     */
-    function getCurrentPhase() public returns(Phase){
-
-		if (amountRaised < phase1Goal) {
-			currentPhase = Phase.PHASE1;
-			if (phase1Deadline < now && now <= phase2Deadline) {
-				currentPhase = Phase.PHASE2;
-			} else if (phase2Deadline < now && now <= phase3Deadline) {
-				currentPhase = Phase.PHASE3;
-			}else if (now > phase3Deadline){
-			    currentPhase = Phase.CROWDSALE_ENDED;
-			}
-		} else if (phase1Goal <= amountRaised && amountRaised < (phase1Goal + phase2Goal)) {
-			currentPhase = Phase.PHASE2;
-			if (phase2Deadline < now && now <= phase3Deadline) {
-				currentPhase = Phase.PHASE2;
-			}else if (now > phase3Deadline){
-			    currentPhase = Phase.CROWDSALE_ENDED;
-			}
-		} else if ((phase1Goal + phase2Goal) <= amountRaised && amountRaised < (phase1Goal + phase2Goal + phase3Goal)) {
-			currentPhase = Phase.PHASE3;
-			if (now > phase3Deadline){
-			    currentPhase = Phase.CROWDSALE_ENDED;
-			}
-		} else {
-			currentPhase = Phase.CROWDSALE_ENDED;
-		}
-
-		return currentPhase;
-	}
     
     /**
      * Add kyc block address
@@ -248,41 +176,14 @@ contract CrowdSale is Ownable{
     /**
      * Send token to investers
      */
-    function distributePhase1Coin() public crowdSaleClosed onlyOwner{
-        for (uint index = 0; index < balanceOfPhase1List.length ; index++){
-            if(kycBlockedMap[balanceOfPhase1List[index]] != true){
-                require(balanceOfPhase1[balanceOfPhase1List[index]] > 0);
-                temcoTokenContract.transferFromWithoutApproval(temcoTokenAddress, balanceOfPhase1List[index], balanceOfPhase1[balanceOfPhase1List[index]].mul(phase1ConversionRate));
-                emit TransferCoinToInvester(temcoTokenAddress, balanceOfPhase1[balanceOfPhase1List[index]].mul(phase1ConversionRate));
-                balanceOfPhase1[balanceOfPhase1List[index]] = balanceOfPhase1[balanceOfPhase1List[index]].sub(balanceOfPhase1[balanceOfPhase1List[index]]);
-            }
-        }
-    }
-    
-    /**
-     * Send token to investers
-     */
-    function distributePhase2Coin() public crowdSaleClosed onlyOwner{
-        for (uint index = 0; index < balanceOfPhase2List.length ; index++){
-            if(kycBlockedMap[balanceOfPhase2List[index]] != true){
-                require(balanceOfPhase2[balanceOfPhase2List[index]] > 0);
-                temcoTokenContract.transferFromWithoutApproval(temcoTokenAddress, balanceOfPhase2List[index], balanceOfPhase2[balanceOfPhase2List[index]].mul(phase2ConversionRate));
-                emit TransferCoinToInvester(temcoTokenAddress, balanceOfPhase2[balanceOfPhase2List[index]].mul(phase2ConversionRate));
-                balanceOfPhase2[balanceOfPhase2List[index]] = balanceOfPhase2[balanceOfPhase2List[index]].sub(balanceOfPhase2[balanceOfPhase2List[index]]);
-            }
-        }
-    }
-    
-    /**
-     * Send token to investers
-     */
-    function distributePhase3Coin() public crowdSaleClosed onlyOwner{
-        for (uint index = 0; index < balanceOfPhase3List.length ; index++){
-            if(kycBlockedMap[balanceOfPhase3List[index]] != true){
-                require(balanceOfPhase3[balanceOfPhase3List[index]] > 0);
-                temcoTokenContract.transferFromWithoutApproval(temcoTokenAddress, balanceOfPhase3List[index], balanceOfPhase3[balanceOfPhase3List[index]].mul(phase3ConversionRate));
-                emit TransferCoinToInvester(temcoTokenAddress, balanceOfPhase3[balanceOfPhase3List[index]].mul(phase3ConversionRate));
-                balanceOfPhase3[balanceOfPhase3List[index]] = balanceOfPhase3[balanceOfPhase3List[index]].sub(balanceOfPhase3[balanceOfPhase2List[index]]);
+    function distributeCoin() public crowdSaleClosed onlyOwner{
+        for (uint index = 0; index < balanceList.length ; index++){
+            if(kycBlockedMap[balanceList[index]] != true){
+                require(balances[balanceList[index]] > 0);
+                temcoTokenContract.transferFromWithoutApproval(temcoTokenAddress, balanceList[index], balances[balanceList[index]].mul(conversionRate));
+                balances[balanceList[index]] = balances[balanceList[index]].sub(balances[balanceList[index]]);
+                
+                emit TransferCoinToInvester(temcoTokenAddress, balances[balanceList[index]].mul(conversionRate));
             }
         }
     }
@@ -298,32 +199,15 @@ contract CrowdSale is Ownable{
     /**
      * In case of goal is changed after contract deployed.
      */
-    function updatePhase1Goal(uint amount) public onlyOwner{
-        phase1Goal = amount * 1 ether;
-    }
-    
-    function updatePhase2Goal(uint amount) public onlyOwner{
-        phase2Goal = amount * 1 ether;
-    }
-    
-    function updatePhase3Goal(uint amount) public onlyOwner{
-        phase3Goal = amount * 1 ether;
+    function updateGoal(uint amount) public onlyOwner{
+        goal = amount * 0.1 ether;
     }
     
     /**
      * In case of conversion is changed after contract deployed.
      */
-    function updateConversionRate1(uint rate) public onlyOwner{
-        phase1ConversionRate = rate;
+    function updateConversionRate(uint rate) public onlyOwner{
+        conversionRate = rate;
     }
-    
-    function updateConversionRate2(uint rate) public onlyOwner{
-        phase2ConversionRate = rate;
-    }
-    
-    function updateConversionRate3(uint rate) public onlyOwner{
-        phase3ConversionRate = rate;
-    }
-    
     
 }
