@@ -1,0 +1,41 @@
+
+address1 : 0xa154edeC9E02092e89047FCe5F09d030ed908b15 -> contract : 0x0b243d9e0dd96d6592db0790d09c9ae274dd040f
+address2 : 0xeE5Dc613fd97009ec0c363320087BE463a2A246f -> crowd : 0x315d9cdd25d1f935a5ff1622ade89c2ee4c04ebe
+address3 : 0xe1510988B463D705E98c8B100a0Fd52a72D43aa3
+address4 : 0x1C8b5098C806092D9Aaa63e5F4757F61584d0de9
+ 
+ 
+simple send from myether wallet [address1 to address4]
+from address1
+to contract
+transfer 3 TEMCO Token from address1 to address4
+
+
+Create temco token contractor 
+10000000000, "TEMCO", "TMC777"
+ 
+Create crowdsale contractor 
+"0xa154edeC9E02092e89047FCe5F09d030ed908b15", "0x0b243d9e0dd96d6592db0790d09c9ae274dd040f", "0xa154edeC9E02092e89047FCe5F09d030ed908b15", 0, 10, 10, 10
+gas limit : 4000000 
+
+1. Send ether to crowd sale contractor address (*** do not send to the wallet address)
+
+address 1 : 0x21b55302696E861D9B41292891a3623b1c369fb8
+address 2 : 0xB2766103aad2f96Fb291e4d25d43Cae5dF47936b
+address 3 : 0x668f09A88630Bbab313368F5AcB9f59d89240D3b
+address 4 : 0xb4B72D17C8e9619d28775fCB94a3f688DBe01FD7
+address 5 : 0xEeB77D45886158e36C23D88F39828e6Aa3de4419
+
+2. Add blok list
+
+3. Send token (if many account on one metamaks, change to other environment and comeback. sometimes does not refresh)
+
+
+--------------------------------------------------------------
+Load contract from different or current machine
+option 1)
+open https://remix.ethereum.org
+Load sol files and add existing contract address
+option 2)
+open https://www.withpragma.com/
+
