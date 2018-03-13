@@ -24,7 +24,9 @@ contract TemcoToken is ERC20, Ownable {
   mapping (address => mapping (address => uint256)) internal allowed;
 
   uint256 public totalSupply;
-  function totalSupply() public view returns (uint256);
+  function totalSupply() public view returns (uint256) {
+      return totalSupply;
+  }
   
   // Public variables of the token
   string public name;
