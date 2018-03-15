@@ -5,6 +5,8 @@ pragma solidity ^0.4.18;
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
+ * based on https://https://github.com/OpenZeppelin/zeppelin-solidity. modified to have multiple ownership.
+ * @author Geunil(Brian) Lee
  */
 contract Ownable {
   
@@ -34,6 +36,7 @@ contract Ownable {
 
   /**
    * @dev Add ownership
+   * @param newOwner add address to the ownership
    */
   function addOwnership(address newOwner) public onlyOwner {
     require(newOwner != address(0));
@@ -43,10 +46,12 @@ contract Ownable {
   
   /**
    * @dev Remove ownership
+   * @param ownership remove ownership
    */
-  function removeOwner(address noOwner) public onlyOwner{
-    owner[noOwner] = false;
-    emit OwnershipAdded(noOwner);
+  function removeOwner(address ownership) public onlyOwner{
+    require(ownership != address(0));
+    delete owner[ownership];
+    emit OwnershipAdded(ownership);
   }
 
 }
