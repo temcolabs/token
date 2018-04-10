@@ -92,7 +92,7 @@ contract CrowdSale is Ownable{
     * @param crowdDurationInMinutes crowd sale duration. unit is days
     * @param minEther minimum ether to receive. unit is 0.1 ether
     * @param fundingGoal funding goal for crowd sale
-    * @param rate conversion rate from ether to temco coin
+    * @param rate conversion rate from ether to temco coi
     * @param lockUp lock up duration for current sale. unit is days
     */
     function CrowdSale(
@@ -127,8 +127,8 @@ contract CrowdSale is Ownable{
    * @dev Reverts if not in crowdsale time range. 
    */
    modifier onlyWhileOpen {
-       require(isClowdsaleOpen() == true);
-       _;
+    require((now >= crowdStartTime && now < crowdEndTime) || (amountRaised < goal));
+    _;
    }
    
    /**
@@ -162,16 +162,6 @@ contract CrowdSale is Ownable{
         
         emit Received(msg.sender, amount); 
 		
-    }
-    
-    function isClowdsaleOpen() private returns(bool){
-        bool open = false;
-        if(amountRaised < goal){
-           if(now >= crowdStartTime && now < crowdEndTime){
-               open =  true;
-           }
-        }
-        return open;
     }
     
     /**
