@@ -1,4 +1,4 @@
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.21;
 
 import "./Ownable.sol";
 import "./TemcoToken.sol";
@@ -15,6 +15,8 @@ contract CrowdSale is Ownable{
     
     event TransferCoinToInvestor(address investor, uint256 value);
     event Received(address investor, uint256 value);
+
+    uint constant GAS_LIMIT = 600000;
     
     TemcoToken temcoTokenContract;
     address public temcoTokenAddress;
@@ -56,7 +58,13 @@ contract CrowdSale is Ownable{
     /**
      * @dev Lock up duration for current sale
      */
-    uint public lockUpDuration;
+    uint private lockUpDuration;
+
+
+    /**
+     * @dev keep track how far payee has been gone. can be resume in case of transaction fail
+     */
+    uint private nextPayeeIndex;
     
     /**
      * @dev Hold who and how much invest on phase
@@ -88,8 +96,8 @@ contract CrowdSale is Ownable{
     * @param temcoAddress temco token address
     * @param temcoTokenContractAddress temco token contract address
     * @param etherAddress wallet to transfer amount raised
-    * @param crowdStartInMinutes crowd sale start time. unit is days
-    * @param crowdDurationInMinutes crowd sale duration. unit is days
+    * @param crowdStartInDays crowd sale start time. unit is days
+    * @param crowdDurationInDays crowd sale duration. unit is days
     * @param minEther minimum ether to receive. unit is 0.1 ether
     * @param fundingGoal funding goal for crowd sale
     * @param rate conversion rate from ether to temco coin
@@ -99,8 +107,8 @@ contract CrowdSale is Ownable{
         address temcoAddress,
         address temcoTokenContractAddress,
         address etherAddress,
-        uint crowdStartInMinutes,
-        uint crowdDurationInMinutes,
+        uint crowdStartInDays,
+        uint crowdDurationInDays,
         uint minEther,
         uint fundingGoal,
         uint rate,
@@ -109,18 +117,15 @@ contract CrowdSale is Ownable{
         temcoTokenAddress = temcoAddress;
         temcoTokenContract = TemcoToken(temcoTokenContractAddress);
         temcoEtherAddress = etherAddress;
-        //TODO: change to date
-        //crowdStartTime = now + crowdStartInMinutes * 1 days;
-        //crowdEndTime = crowdStartTime + crowdDurationInMinutes * 1 days;
-        crowdStartTime = now + crowdStartInMinutes * 1 minutes;
-        crowdEndTime = crowdStartTime + crowdDurationInMinutes * 1 minutes;
+        
+        crowdStartTime = now + crowdStartInDays * 1 days;
+        crowdEndTime = crowdStartTime + crowdDurationInDays * 1 days;
         
         minimumEther = minEther * 0.1 ether;
         goal = fundingGoal;
         conversionRate = rate;
-        //TODO: change to date
-        //lockUpDuration = now + lockUp * 1 days;
-        lockUpDuration = now + lockUp * 1 minutes;
+        
+        lockUpDuration = now + lockUp * 1 days;
     }
     
     /**
@@ -189,17 +194,21 @@ contract CrowdSale is Ownable{
     }
     
     /**
-     * @dev Send token to investors
+     * @dev Send token to investors. can be resumed in case of transactio fail. 
+     *      nextPayeeIndex keeps track of how far gone.
      */
     function distributeCoin() public crowdSaleClosed onlyOwner{
-        for (uint index = 0; index < balanceList.length ; index++){
+        uint index = nextPayeeIndex;
+        for (index = 0; index < balanceList.length ; index++){
             if(kycBlockedMap[balanceList[index]] != true){
                 require(balances[balanceList[index]] > 0);
+                require(gasleft() > GAS_LIMIT);                
                 temcoTokenContract.transferFromWithoutApproval(temcoTokenAddress, balanceList[index], balances[balanceList[index]].mul(conversionRate), lockUpDuration);
                 balances[balanceList[index]] = balances[balanceList[index]].sub(balances[balanceList[index]]);
                 
                 emit TransferCoinToInvestor(temcoTokenAddress, balances[balanceList[index]].mul(conversionRate));
             }
+            nextPayeeIndex = index;
         }
     }
     
@@ -227,6 +236,13 @@ contract CrowdSale is Ownable{
     function updateConversionRate(uint rate) public onlyOwner{
         require(rate > 0);
         conversionRate = rate;
+    }
+
+    /**
+     * @dev Stop crowd sale in case of emergency
+     */
+    function stopCrowdSale() public onlyOwner{        
+        crowdEndTime = now;
     }
     
 }

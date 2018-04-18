@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 
 import "./Ownable.sol";
@@ -31,10 +31,8 @@ contract Lockable is Ownable {
     * @param duration lock up period. unit is days
     */
     function addLockUp(address investor, uint duration ) onlyOwner public {
-    // TODO : change to date
-    //lockedUp[investor] = now + duration * 1 days;
         require(investor != address(0) && duration > 0);
-        lockedUp[investor] = now + duration * 1 minutes; 
+        lockedUp[investor] = now + duration * 1 days; 
     }
     
     /**
