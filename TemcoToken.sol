@@ -7,7 +7,7 @@ import "./Lockable.sol";
 
 
 /**
- * @title Temco token
+ * @title TEMCO token
  * @dev Based on code by https://https://github.com/OpenZeppelin/zeppelin-solidity
  * @author Geunil(Brian) Lee
  */
@@ -125,7 +125,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
   
   /**
   * @dev Gets the balance of the specified address.
-  * @param _owner The address to query the the balance of.
+  * @param _owner The address to query the balance of.
   * @return An uint256 representing the amount owned by the passed address.
   */
   function balanceOf(address _owner) public view returns (uint256 balance) {

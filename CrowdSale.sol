@@ -34,12 +34,12 @@ contract CrowdSale is Ownable{
     uint public crowdStartTime;
     
     /**
-     * @dev Crowd sale phase dealine. Sale will have total 3 phases.
+     * @dev Crowd sale phase deadline. Sale will have total 3 phases.
      */
     uint public crowdEndTime;
     
     /**
-     * @dev Mininum ether acceptance for invest
+     * @dev Minimum ether acceptance for invest
      */
     uint public minimumEther;
     
@@ -66,7 +66,7 @@ contract CrowdSale is Ownable{
         return balances[index];
     }
     /**
-     * @dev No iteration for the mapping. Hold investor address to use iterate over maping
+     * @dev No iteration for the mapping. Hold investor address to use iterate over map
      */
     address[] public balanceList;
     function getBalanceList() public constant returns (address[]) {
@@ -92,7 +92,7 @@ contract CrowdSale is Ownable{
     * @param crowdDurationInMinutes crowd sale duration. unit is days
     * @param minEther minimum ether to receive. unit is 0.1 ether
     * @param fundingGoal funding goal for crowd sale
-    * @param rate conversion rate from ether to temco coi
+    * @param rate conversion rate from ether to temco coin
     * @param lockUp lock up duration for current sale. unit is days
     */
     function CrowdSale(
@@ -126,26 +126,26 @@ contract CrowdSale is Ownable{
     /**
    * @dev Reverts if not in crowdsale time range. 
    */
-   modifier onlyWhileOpen {
-    require((now >= crowdStartTime && now < crowdEndTime) || (amountRaised < goal));
-    _;
-   }
+    modifier onlyWhileOpen {
+        require((now >= crowdStartTime && now < crowdEndTime) || (amountRaised < goal));
+        _;
+    }
    
    /**
    * @dev Reverts if in crowdsale time range. 
    */
-   modifier crowdSaleClosed{
-    require(now > crowdEndTime || amountRaised >= goal);
-    _;
-   }
+    modifier crowdSaleClosed{
+        require(now > crowdEndTime || amountRaised >= goal);
+        _;
+    }
    
    /**
    * @dev Reverts if not match minimum ether amount
    */
-   modifier minimumEtherRequired{
-     require( msg.value >= minimumEther);
-    _;
-   }
+    modifier minimumEtherRequired{
+        require( msg.value >= minimumEther);
+        _;
+    }
   
     /**
     * Fallback function
@@ -182,10 +182,10 @@ contract CrowdSale is Ownable{
         require(blockAddress != address(0));
         delete kycBlockedMap[blockAddress];
         for (uint index = 0; index < kycBlockedMapList.length ; index++){
-          if(kycBlockedMapList[index] == blockAddress){
-              kycBlockedMapList[index] = address(0);
-          }        
-      }
+            if(kycBlockedMapList[index] == blockAddress){
+                kycBlockedMapList[index] = address(0);
+            }        
+        }
     }
     
     /**

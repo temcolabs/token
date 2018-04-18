@@ -11,7 +11,7 @@ pragma solidity ^0.4.18;
 contract Ownable {
   
   /**
-   * Ownership canb be owned by multiple ower. Useful when have multiple contract to comunicate each other
+   * Ownership can be owned by multiple owner. Useful when have multiple contract to communicate  each other
    **/
   mapping (address => bool) public owner;
   

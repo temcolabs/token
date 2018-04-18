@@ -6,7 +6,7 @@ import "./Ownable.sol";
 
 /**
  * @title Lockable
- * @dev lock up token transfer during duration. This helps lock up private and pre-sale investor cannot sell tocken certain period.
+ * @dev lock up token transfer during duration. This helps lock up private and pre-sale investor cannot sell token certain period.
  * @author Geunil(Brian) Lee
  */
 contract Lockable is Ownable {
