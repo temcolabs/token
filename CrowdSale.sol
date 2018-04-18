@@ -124,24 +124,24 @@ contract CrowdSale is Ownable{
     }
     
     /**
-   * @dev Reverts if not in crowdsale time range. 
-   */
+    * @dev Reverts if not in crowdsale time range. 
+    */
     modifier onlyWhileOpen {
         require((now >= crowdStartTime && now < crowdEndTime) || (amountRaised < goal));
         _;
     }
    
-   /**
-   * @dev Reverts if in crowdsale time range. 
-   */
+    /**
+    * @dev Reverts if in crowdsale time range. 
+    */
     modifier crowdSaleClosed{
         require(now > crowdEndTime || amountRaised >= goal);
         _;
     }
    
-   /**
-   * @dev Reverts if not match minimum ether amount
-   */
+    /**
+    * @dev Reverts if not match minimum ether amount
+    */
     modifier minimumEtherRequired{
         require( msg.value >= minimumEther);
         _;
