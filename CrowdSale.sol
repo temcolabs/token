@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity 0.4.21;
 
 import "./Ownable.sol";
 import "./TemcoToken.sol";
@@ -26,7 +26,7 @@ contract CrowdSale is Ownable{
      * @dev Amount raised on crowdsale
      */
     uint public amountRaised;
-    function getAmountRaised() public constant returns (uint) {
+    function getAmountRaised() public view returns (uint) {
         return amountRaised;
     }
     
@@ -70,14 +70,14 @@ contract CrowdSale is Ownable{
      * @dev Hold who and how much invest on phase
      */
     mapping (address => uint256) public balances;
-    function getBalance(address index) public constant returns (uint256) {
+    function getBalance(address index) public view returns (uint256) {
         return balances[index];
     }
     /**
      * @dev No iteration for the mapping. Hold investor address to use iterate over map
      */
     address[] public balanceList;
-    function getBalanceList() public constant returns (address[]) {
+    function getBalanceList() public view returns (address[]) {
         return balanceList;
     }
 
@@ -86,7 +86,7 @@ contract CrowdSale is Ownable{
      */
     mapping (address => bool) public kycBlockedMap;
     address[] public kycBlockedMapList;
-    function getKycBlockedMapList() public constant returns (address[]) {
+    function getKycBlockedMapList() public view returns (address[]) {
         return kycBlockedMapList;
     }
     
@@ -173,7 +173,7 @@ contract CrowdSale is Ownable{
      * @dev Add kyc block address
      * @param blockAddress address to be added to block list
      */
-    function addBockList(address blockAddress) public onlyOwner {
+    function addBockList(address blockAddress) external onlyOwner {
         require(blockAddress != address(0));
         kycBlockedMap[blockAddress] = true;
         kycBlockedMapList.push(blockAddress);
@@ -183,7 +183,7 @@ contract CrowdSale is Ownable{
      * @dev Remove kyc block address
      * @param blockAddress address to be removed from block list
      */
-    function removeBockList(address blockAddress) public onlyOwner {
+    function removeBockList(address blockAddress) external onlyOwner {
         require(blockAddress != address(0));
         delete kycBlockedMap[blockAddress];
         for (uint index = 0; index < kycBlockedMapList.length ; index++){
@@ -197,13 +197,13 @@ contract CrowdSale is Ownable{
      * @dev Send token to investors. can be resumed in case of transactio fail. 
      *      nextPayeeIndex keeps track of how far gone.
      */
-    function distributeCoin() public crowdSaleClosed onlyOwner{
+    function distributeCoin() external crowdSaleClosed onlyOwner{
         uint index = nextPayeeIndex;
         for (index = 0; index < balanceList.length ; index++){
             if(kycBlockedMap[balanceList[index]] != true){
                 require(balances[balanceList[index]] > 0);
                 require(gasleft() > GAS_LIMIT);                
-                temcoTokenContract.transferFromWithoutApproval(temcoTokenAddress, balanceList[index], balances[balanceList[index]].mul(conversionRate), lockUpDuration);
+                temcoTokenContract.transferFromWithLockup(temcoTokenAddress, balanceList[index], balances[balanceList[index]].mul(conversionRate), lockUpDuration);
                 balances[balanceList[index]] = balances[balanceList[index]].sub(balances[balanceList[index]]);
                 
                 emit TransferCoinToInvestor(temcoTokenAddress, balances[balanceList[index]].mul(conversionRate));
@@ -215,7 +215,7 @@ contract CrowdSale is Ownable{
     /**
      * @dev Send amount raised ether to wallet
      */
-    function withdrawal() public crowdSaleClosed onlyOwner{
+    function withdrawal() external crowdSaleClosed onlyOwner{
         require(amountRaised > 0);
         temcoEtherAddress.transfer(amountRaised);
     }
@@ -224,7 +224,7 @@ contract CrowdSale is Ownable{
      * @dev In case of goal is changed after contract deployed.
      * @param amount sale goal. unit is 0.1 ether
      */
-    function updateGoal(uint amount) public onlyOwner{
+    function updateGoal(uint amount) external onlyOwner{
         require(amount > 0);
         goal = amount * 0.1 ether;
     }
@@ -233,7 +233,7 @@ contract CrowdSale is Ownable{
      * @dev In case of conversion is changed after contract deployed.
      * @param rate conversion rate
      */
-    function updateConversionRate(uint rate) public onlyOwner{
+    function updateConversionRate(uint rate) external onlyOwner{
         require(rate > 0);
         conversionRate = rate;
     }
@@ -241,7 +241,7 @@ contract CrowdSale is Ownable{
     /**
      * @dev Stop crowd sale in case of emergency
      */
-    function stopCrowdSale() public onlyOwner{        
+    function stopCrowdSale() external onlyOwner{        
         crowdEndTime = now;
     }
     

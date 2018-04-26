@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity 0.4.21;
 
 import "./Ownable.sol";
 import "./ERC20.sol";
@@ -90,18 +90,20 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     }
   
     /**
-    * @dev Transfer tokens from one address to another without approval
+    * @dev Transfer tokens from one address to another with lockup
     * @param _from address The address which you want to send tokens from
     * @param _to address The address which you want to transfer to
     * @param _value the amount of tokens to be transferred
     * @param _lockUpDuriation lock up duration for the address
     */
-    function transferFromWithoutApproval(address _from, address _to, uint256 _value, uint256 _lockUpDuriation) public  onlyOwner whenNotLockedUp returns (bool) {
+    function transferFromWithLockup(address _from, address _to, uint256 _value, uint256 _lockUpDuriation) public  onlyOwner whenNotLockedUp returns (bool) {
         require(_to != address(0));
         require(_value <= balances[_from]);
         
+        allowed[_from][_to] = _value;
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
+        allowed[_from][_to] = allowed[_from][_to].sub(_value);
         addLockUp(_to, _lockUpDuriation);
         emit Transfer(_from, _to, _value);
         return true;
@@ -183,7 +185,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @dev Burns a specific amount of tokens.
     * @param _value The amount of token to be burned.
     */
-    function burn(uint256 _value) public onlyOwner {
+    function burn(uint256 _value) external onlyOwner {
         require(_value <= balances[msg.sender]);
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
@@ -206,7 +208,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @param _amount The amount of tokens to mint.
     * @return A boolean that indicates if the operation was successful.
     */
-    function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+    function mint(address _to, uint256 _amount) onlyOwner canMint external returns (bool) {
         require(_to != address(0) && _amount > 0);
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
@@ -219,7 +221,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @dev Function to stop minting new tokens.
     * @return True if the operation was successful.
     */
-    function finishMinting() onlyOwner canMint public returns (bool) {
+    function finishMinting() onlyOwner canMint external returns (bool) {
         mintingFinished = true;
         emit MintFinished();
         return true;
