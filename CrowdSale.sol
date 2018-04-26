@@ -16,9 +16,9 @@ contract CrowdSale is Ownable{
     event TransferCoinToInvestor(address investor, uint256 value);
     event Received(address investor, uint256 value);
 
-    uint constant GAS_LIMIT = 600000;
+    uint private constant GAS_LIMIT = 600000;
     
-    TemcoToken temcoTokenContract;
+    TemcoToken private temcoTokenContract;
     address public temcoTokenAddress;
     address public temcoEtherAddress;
     

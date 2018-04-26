@@ -197,7 +197,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
         balances[burner] = balances[burner].sub(_value);
         totalSupply = totalSupply.sub(_value);
         emit Burn(burner, _value);
-        emit Transfer(burner, address(0), _value);
+        emit Transfer(burner, address(0x0), _value);
     }
   
     modifier canMint() {
@@ -212,11 +212,11 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @return A boolean that indicates if the operation was successful.
     */
     function mint(address _to, uint256 _amount) onlyOwner canMint external returns (bool) {
-        require(_to != address(0) && _amount > 0);
+        require(_to != address(0x0) && _amount > 0);
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
         emit Mint(_to, _amount);
-        emit Transfer(address(0), _to, _amount);
+        emit Transfer(address(0x0), _to, _amount);
         return true;
     }
 
