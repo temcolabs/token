@@ -151,14 +151,15 @@ contract CrowdSale is Ownable{
         require( msg.value >= minimumEther);
         _;
     }
-  
+    
     /**
     * Fallback function
     *
     * The function without name is the default function that is called whenever anyone sends funds to a contract
     */
-    function () payable public onlyWhileOpen minimumEtherRequired{
-        require(msg.sender != address(0));
+    function () payable public onlyWhileOpen minimumEtherRequired {
+        require(msg.sender != address(0x0));
+        require(msg.sender != address(this));
         uint amount = msg.value;
         
         amountRaised = amountRaised.add(amount);
@@ -174,7 +175,8 @@ contract CrowdSale is Ownable{
      * @param blockAddress address to be added to block list
      */
     function addBockList(address blockAddress) external onlyOwner {
-        require(blockAddress != address(0));
+        require(blockAddress != address(0x0));
+        require(blockAddress != address(this));
         kycBlockedMap[blockAddress] = true;
         kycBlockedMapList.push(blockAddress);
     }
@@ -184,11 +186,11 @@ contract CrowdSale is Ownable{
      * @param blockAddress address to be removed from block list
      */
     function removeBockList(address blockAddress) external onlyOwner {
-        require(blockAddress != address(0));
+        require(blockAddress != address(0x0));
         delete kycBlockedMap[blockAddress];
         for (uint index = 0; index < kycBlockedMapList.length ; index++){
             if(kycBlockedMapList[index] == blockAddress){
-                kycBlockedMapList[index] = address(0);
+                kycBlockedMapList[index] = address(0x0);
             }        
         }
     }

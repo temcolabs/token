@@ -61,7 +61,8 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     function transfer(address _to, uint256 _value) public whenNotLockedUp returns (bool) {
         emit Transfer(msg.sender, _to, _value);
         emit OwnedValue(msg.sender, _value);
-        require(_to != address(0));
+        require(_to != address(0x0));
+        require(_to != address(this));
         require(_value <= balances[msg.sender]); 
 
         // SafeMath.sub will throw if there is not enough balance.
@@ -78,7 +79,8 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @param _value uint256 the amount of tokens to be transferred
     */
     function transferFrom(address _from, address _to, uint256 _value) public whenNotLockedUp returns (bool) {
-        require(_to != address(0));
+        require(_to != address(0x0));
+        require(_to != address(this));
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
 
@@ -97,7 +99,8 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @param _lockUpDuriation lock up duration for the address
     */
     function transferFromWithLockup(address _from, address _to, uint256 _value, uint256 _lockUpDuriation) public  onlyOwner whenNotLockedUp returns (bool) {
-        require(_to != address(0));
+        require(_to != address(0x0));
+        require(_to != address(this));
         require(_value <= balances[_from]);
         
         allowed[_from][_to] = _value;
