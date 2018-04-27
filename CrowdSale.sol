@@ -1,4 +1,4 @@
-pragma solidity 0.4.21;
+pragma solidity ^0.4.21;
 
 import "./Ownable.sol";
 import "./TemcoToken.sol";
@@ -174,24 +174,44 @@ contract CrowdSale is Ownable{
      * @dev Add kyc block address
      * @param blockAddress address to be added to block list
      */
-    function addBockList(address blockAddress) external onlyOwner {
+    function addBockList(address blockAddress) public onlyOwner {
         require(blockAddress != address(0x0));
         require(blockAddress != address(this));
         kycBlockedMap[blockAddress] = true;
         kycBlockedMapList.push(blockAddress);
+    }
+
+    /**
+     * @dev Add many kyc block address
+     * @param blockAddress address list to be added to block list
+     */
+    function addManyBockList(address[] blockAddressList) external onlyOwner {
+        for (uint256 i = 0; i < blockAddressList.length; i++) {
+            addBockList(blockAddressList[i]);
+        }
     }
     
     /**
      * @dev Remove kyc block address
      * @param blockAddress address to be removed from block list
      */
-    function removeBockList(address blockAddress) external onlyOwner {
+    function removeBockList(address blockAddress) public onlyOwner {
         require(blockAddress != address(0x0));
         delete kycBlockedMap[blockAddress];
         for (uint index = 0; index < kycBlockedMapList.length ; index++){
             if(kycBlockedMapList[index] == blockAddress){
                 kycBlockedMapList[index] = address(0x0);
             }        
+        }
+    }
+
+    /**
+     * @dev remove many kyc block address
+     * @param blockAddress address list to be removed from block list
+     */
+    function removeManyBockList(address[] blockAddressList) external onlyOwner {
+        for (uint256 i = 0; i < blockAddressList.length; i++) {
+            removeBockList(blockAddressList[i]);
         }
     }
     
