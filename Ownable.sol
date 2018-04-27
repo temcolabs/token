@@ -38,20 +38,20 @@ contract Ownable {
     * @dev Add ownership
     * @param newOwner add address to the ownership
     */
-    function addOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0));
-        owner[newOwner] = true;
-        emit OwnershipAdded(newOwner);
+    function addOwnership(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0));
+        owner[_newOwner] = true;
+        emit OwnershipAdded(_newOwner);
     }
   
     /**
     * @dev Remove ownership
     * @param ownership remove ownership
     */
-    function removeOwner(address ownership) public onlyOwner{
-        require(ownership != address(0));
-        delete owner[ownership];
-        emit OwnershipAdded(ownership);
+    function removeOwner(address _ownership) public onlyOwner{
+        require(_ownership != address(0));
+        delete owner[_ownership];
+        emit OwnershipAdded(_ownership);
     }
 
 }

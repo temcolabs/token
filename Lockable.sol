@@ -30,18 +30,18 @@ contract Lockable is Ownable {
     * @param investor lock up address
     * @param duration lock up period. unit is days
     */
-    function addLockUp(address investor, uint duration ) onlyOwner public {
-        require(investor != address(0) && duration > 0);
-        lockedUp[investor] = now + duration * 1 days; 
+    function addLockUp(address _investor, uint _duration ) onlyOwner public {
+        require(_investor != address(0) && _duration > 0);
+        lockedUp[_investor] = now + _duration * 1 days; 
     }
     
     /**
     * @dev remove lock up address from mapping
     * @param investor lock up address to be removed from mapping
     */
-    function removeLockUp(address investor ) onlyOwner public {
-        require(investor != address(0));
-        delete lockedUp[investor]; 
+    function removeLockUp(address _investor ) onlyOwner public {
+        require(_investor != address(0));
+        delete lockedUp[_investor]; 
     }
   
   

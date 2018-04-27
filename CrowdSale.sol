@@ -174,20 +174,20 @@ contract CrowdSale is Ownable{
      * @dev Add kyc block address
      * @param blockAddress address to be added to block list
      */
-    function addBockList(address blockAddress) public onlyOwner {
-        require(blockAddress != address(0));
-        require(blockAddress != address(this));
-        kycBlockedMap[blockAddress] = true;
-        kycBlockedMapList.push(blockAddress);
+    function addBockList(address _blockAddress) public onlyOwner {
+        require(_blockAddress != address(0));
+        require(_blockAddress != address(this));
+        kycBlockedMap[_blockAddress] = true;
+        kycBlockedMapList.push(_blockAddress);
     }
 
     /**
      * @dev Add many kyc block address
      * @param blockAddress address list to be added to block list
      */
-    function addManyBockList(address[] blockAddressList) external onlyOwner {
-        for (uint256 i = 0; i < blockAddressList.length; i++) {
-            addBockList(blockAddressList[i]);
+    function addManyBockList(address[] _blockAddressList) external onlyOwner {
+        for (uint256 i = 0; i < _blockAddressList.length; i++) {
+            addBockList(_blockAddressList[i]);
         }
     }
     
@@ -195,11 +195,11 @@ contract CrowdSale is Ownable{
      * @dev Remove kyc block address
      * @param blockAddress address to be removed from block list
      */
-    function removeBockList(address blockAddress) public onlyOwner {
-        require(blockAddress != address(0));
-        delete kycBlockedMap[blockAddress];
+    function removeBockList(address _blockAddress) public onlyOwner {
+        require(_blockAddress != address(0));
+        delete kycBlockedMap[_blockAddress];
         for (uint index = 0; index < kycBlockedMapList.length ; index++){
-            if(kycBlockedMapList[index] == blockAddress){
+            if(kycBlockedMapList[index] == _blockAddress){
                 kycBlockedMapList[index] = address(0);
             }        
         }
@@ -209,9 +209,9 @@ contract CrowdSale is Ownable{
      * @dev remove many kyc block address
      * @param blockAddress address list to be removed from block list
      */
-    function removeManyBockList(address[] blockAddressList) external onlyOwner {
-        for (uint256 i = 0; i < blockAddressList.length; i++) {
-            removeBockList(blockAddressList[i]);
+    function removeManyBockList(address[] _blockAddressList) external onlyOwner {
+        for (uint256 i = 0; i < _blockAddressList.length; i++) {
+            removeBockList(_blockAddressList[i]);
         }
     }
     
@@ -246,18 +246,18 @@ contract CrowdSale is Ownable{
      * @dev In case of goal is changed after contract deployed.
      * @param amount sale goal. unit is 0.1 ether
      */
-    function updateGoal(uint amount) external onlyOwner{
-        require(amount > 0);
-        goal = amount * 0.1 ether;
+    function updateGoal(uint _amount) external onlyOwner{
+        require(_amount > 0);
+        goal = _amount * 0.1 ether;
     }
     
     /**
      * @dev In case of conversion is changed after contract deployed.
      * @param rate conversion rate
      */
-    function updateConversionRate(uint rate) external onlyOwner{
-        require(rate > 0);
-        conversionRate = rate;
+    function updateConversionRate(uint _rate) external onlyOwner{
+        require(_rate > 0);
+        conversionRate = _rate;
     }
 
     /**
