@@ -61,7 +61,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     function transfer(address _to, uint256 _value) public whenNotLockedUp returns (bool) {
         emit Transfer(msg.sender, _to, _value);
         emit OwnedValue(msg.sender, _value);
-        require(_to != address(0x0));
+        require(_to != address(0));
         require(_to != address(this));
         require(_value <= balances[msg.sender]); 
 
@@ -79,7 +79,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @param _value uint256 the amount of tokens to be transferred
     */
     function transferFrom(address _from, address _to, uint256 _value) public whenNotLockedUp returns (bool) {
-        require(_to != address(0x0));
+        require(_to != address(0));
         require(_to != address(this));
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
@@ -99,7 +99,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @param _lockUpDuriation lock up duration for the address
     */
     function transferFromWithLockup(address _from, address _to, uint256 _value, uint256 _lockUpDuriation) public  onlyOwner whenNotLockedUp returns (bool) {
-        require(_to != address(0x0));
+        require(_to != address(0));
         require(_to != address(this));
         require(_value <= balances[_from]);
         
@@ -197,7 +197,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
         balances[burner] = balances[burner].sub(_value);
         totalSupply = totalSupply.sub(_value);
         emit Burn(burner, _value);
-        emit Transfer(burner, address(0x0), _value);
+        emit Transfer(burner, address(0), _value);
     }
   
     modifier canMint() {
@@ -212,11 +212,11 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     * @return A boolean that indicates if the operation was successful.
     */
     function mint(address _to, uint256 _amount) onlyOwner canMint external returns (bool) {
-        require(_to != address(0x0) && _amount > 0);
+        require(_to != address(0) && _amount > 0);
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
         emit Mint(_to, _amount);
-        emit Transfer(address(0x0), _to, _amount);
+        emit Transfer(address(0), _to, _amount);
         return true;
     }
 
