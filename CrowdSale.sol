@@ -14,9 +14,7 @@ contract CrowdSale is Ownable{
     using SafeMath for uint256;
     
     event TransferCoinToInvestor(address investor, uint256 value);
-    event Received(address investor, uint256 value);
-
-    uint private constant GAS_LIMIT = 600000;
+    event Received(address investor, uint256 value);    
     
     TemcoToken private temcoTokenContract;
     address public temcoTokenAddress;
@@ -223,8 +221,7 @@ contract CrowdSale is Ownable{
         uint index = nextPayeeIndex;
         for (index = 0; index < balanceList.length ; index++){
             if(kycBlockedMap[balanceList[index]] != true){
-                require(balances[balanceList[index]] > 0);
-                require(gasleft() > GAS_LIMIT);                
+                require(balances[balanceList[index]] > 0);                  
                 temcoTokenContract.transferFromWithLockup(temcoTokenAddress, balanceList[index], balances[balanceList[index]].mul(conversionRate), lockUpDuration);
                 balances[balanceList[index]] = balances[balanceList[index]].sub(balances[balanceList[index]]);
                 
