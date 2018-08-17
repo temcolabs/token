@@ -15,6 +15,7 @@ contract CrowdSale is Ownable{
     
     event TransferCoinToInvestor(address investor, uint256 value);
     event Received(address investor, uint256 value);    
+    event Refund(address claimAddress, uint256 refundAmount);    
     
     TemcoToken private temcoTokenContract;
     address public temcoTokenAddress;
@@ -56,13 +57,7 @@ contract CrowdSale is Ownable{
     /**
      * @dev Lock up duration for current sale
      */
-    uint private lockUpDuration;
-
-
-    /**
-     * @dev keep track how far payee has been gone. can be resume in case of transaction fail
-     */
-    uint private nextPayeeIndex;
+    uint private lockUpDuration;    
     
     /**
      * @dev Hold who and how much invest on phase
@@ -80,14 +75,21 @@ contract CrowdSale is Ownable{
     }
 
     /**
-     * @dev KYC block list
+     * @dev KYC whitelist
      */
-    mapping (address => bool) public kycBlockedMap;
-    address[] public kycBlockedMapList;
-    function getKycBlockedMapList() public view returns (address[]) {
-        return kycBlockedMapList;
+    mapping (address => bool) public whitelistMap;
+    address[] public whitelist;
+    function getWhitelist() public view returns (address[]) {
+        return whitelist;
     }
-    
+
+    /**
+     * @dev List who recieved token.    
+     */
+    address[] public constributedList;
+    function getConstributedList() public view returns (address[]) {
+        return constributedList;
+    }
     /**
     * Constructor function
     * 
@@ -149,13 +151,21 @@ contract CrowdSale is Ownable{
         require( msg.value >= minimumEther);
         _;
     }
+
+    /**
+    * @dev Reverts if not in whiltelist
+    */
+    modifier onlyInWhiltelist{
+        require(whitelistMap[ msg.sender] == true);    
+        _;
+    }
     
     /**
     * Fallback function
     *
     * The function without name is the default function that is called whenever anyone sends funds to a contract
     */
-    function () payable public onlyWhileOpen minimumEtherRequired {
+    function () payable public onlyWhileOpen onlyInWhiltelist minimumEtherRequired {
         require(msg.sender != address(0));
         require(msg.sender != address(this));
         uint amount = msg.value;
@@ -163,53 +173,59 @@ contract CrowdSale is Ownable{
         amountRaised = amountRaised.add(amount);
         balances[msg.sender] = balances[msg.sender].add(amount);
         balanceList.push(msg.sender);
+        if(amountRaised >= goal){
+            crowdEndTime = now - 1 minutes;
+        }
+
+        // Transfer raised ether right a way to wallet. This will avoid any loss of funds in cased of faliure.
+        temcoEtherAddress.transfer(amount);
         
         emit Received(msg.sender, amount); 
 		
     }
     
     /**
-     * @dev Add kyc block address
-     * @param blockAddress address to be added to block list
+     * @dev Add kyc whitelist address
+     * @param whitelistAddress address to be added to whiltelist
      */
-    function addBockList(address _blockAddress) public onlyOwner {
-        require(_blockAddress != address(0));
-        require(_blockAddress != address(this));
-        kycBlockedMap[_blockAddress] = true;
-        kycBlockedMapList.push(_blockAddress);
+    function addWhiltelist(address _whitelistAddress) public onlyOwner {
+        require(_whitelistAddress != address(0));
+        require(_whitelistAddress != address(this));
+        whitelistMap[_whitelistAddress] = true;
+        whitelist.push(_whitelistAddress);
     }
 
     /**
-     * @dev Add many kyc block address
-     * @param blockAddress address list to be added to block list
+     * @dev Add many kyc whitelist address
+     * @param whitelistAddressList address list to be added to whitelist
      */
-    function addManyBockList(address[] _blockAddressList) external onlyOwner {
-        for (uint256 i = 0; i < _blockAddressList.length; i++) {
-            addBockList(_blockAddressList[i]);
+    function addManyWhitelist(address[] _whitelistAddressList) external onlyOwner {
+        for (uint256 i = 0; i < _whitelistAddressList.length; i++) {
+            addWhiltelist(_whitelistAddressList[i]);
         }
     }
     
     /**
-     * @dev Remove kyc block address
-     * @param blockAddress address to be removed from block list
+     * @dev Remove kyc whiltelist address
+     * @param whitelistAddress address to be removed from whitelist
      */
-    function removeBockList(address _blockAddress) public onlyOwner {
-        require(_blockAddress != address(0));
-        delete kycBlockedMap[_blockAddress];
-        for (uint index = 0; index < kycBlockedMapList.length ; index++){
-            if(kycBlockedMapList[index] == _blockAddress){
-                kycBlockedMapList[index] = address(0);
+    function removeEachWhiteList(address _whitelistAddress) public onlyOwner {
+        require(_whitelistAddress != address(0));
+        delete whitelistMap[_whitelistAddress];
+        for (uint index = 0; index < whitelist.length ; index++){
+            if(whitelist[index] == _whitelistAddress){
+                whitelist[index] = address(0);
             }        
         }
     }
 
     /**
-     * @dev remove many kyc block address
-     * @param blockAddress address list to be removed from block list
+     * @dev remove many kyc whiltelist address
+     * @param whitelistAddressList address list to be removed from whiltelist
      */
-    function removeManyBockList(address[] _blockAddressList) external onlyOwner {
-        for (uint256 i = 0; i < _blockAddressList.length; i++) {
-            removeBockList(_blockAddressList[i]);
+    function removeManyWhiltelist(address[] _whitelistAddressList) external onlyOwner {
+        for (uint256 i = 0; i < _whitelistAddressList.length; i++) {
+            removeEachWhiteList(_whitelistAddressList[i]);
         }
     }
     
@@ -217,45 +233,48 @@ contract CrowdSale is Ownable{
      * @dev Send token to investors. can be resumed in case of transactio fail. 
      *      nextPayeeIndex keeps track of how far gone.
      */
-    function distributeCoin() external crowdSaleClosed onlyOwner{
-        uint index = nextPayeeIndex;
-        for (index = 0; index < balanceList.length ; index++){
-            if(kycBlockedMap[balanceList[index]] != true){
-                require(balances[balanceList[index]] > 0);                  
-                temcoTokenContract.transferFromWithLockup(temcoTokenAddress, balanceList[index], balances[balanceList[index]].mul(conversionRate), lockUpDuration);
-                balances[balanceList[index]] = balances[balanceList[index]].sub(balances[balanceList[index]]);
-                
-                emit TransferCoinToInvestor(temcoTokenAddress, balances[balanceList[index]].mul(conversionRate));
-            }
-            nextPayeeIndex = index;
+    function distributeCoins(uint startIndex, uint endIndex) external crowdSaleClosed onlyOwner{        
+        for (uint index = startIndex; index < endIndex ; index++){
+            if(whitelistMap[balanceList[index]] != true && balances[balanceList[index]] > 0){                                
+                distribute(balanceList[index]);                
+            }            
         }
+    }
+
+    function distributeCoin(address _claimAddress) external crowdSaleClosed onlyOwner{            
+        distribute(_claimAddress);        
+    }
+
+    function distribute(address _claimAddress) internal crowdSaleClosed onlyOwner{    
+        require(_claimAddress != address(0));    
+        require(whitelistMap[_claimAddress] == true);    
+        require(balances[_claimAddress] >= minimumEther);    
+        temcoTokenContract.transferFromWithLockup(temcoTokenAddress, _claimAddress, balances[_claimAddress].mul(conversionRate), lockUpDuration);
+        balances[_claimAddress] = balances[_claimAddress].sub(balances[_claimAddress]);
+        constributedList.push(_claimAddress);        
+        emit TransferCoinToInvestor(temcoTokenAddress, balances[_claimAddress].mul(conversionRate));                
     }
     
     /**
      * @dev Send amount raised ether to wallet
      */
+     /**
     function withdrawal() external crowdSaleClosed onlyOwner{
         require(amountRaised > 0);
         temcoEtherAddress.transfer(amountRaised);
     }
-    
-    /**
-     * @dev In case of goal is changed after contract deployed.
-     * @param amount sale goal. unit is 0.1 ether
      */
-    function updateGoal(uint _amount) external onlyOwner{
-        require(_amount > 0);
-        goal = _amount * 0.1 ether;
-    }
-    
+
     /**
-     * @dev In case of conversion is changed after contract deployed.
-     * @param rate conversion rate
+     * @dev Refund amount raised ether
      */
-    function updateConversionRate(uint _rate) external onlyOwner{
-        require(_rate > 0);
-        conversionRate = _rate;
-    }
+    function refund(address _claimAddress, uint refundAmount) external onlyOwner{
+        require(_claimAddress != address(0));    
+        require(whitelistMap[_claimAddress] == true);    
+        require(balances[_claimAddress] >= 0);
+        _claimAddress.transfer(refundAmount);
+        emit Refund(_claimAddress, refundAmount);
+    }    
 
     /**
      * @dev Stop crowd sale in case of emergency
