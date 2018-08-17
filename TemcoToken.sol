@@ -101,11 +101,9 @@ contract TemcoToken is ERC20, Ownable, Lockable {
         require(_to != address(0));
         require(_to != address(this));
         require(_value <= balances[_from]);
-        
-        allowed[_from][_to] = _value;
+                
         balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);
-        allowed[_from][_to] = allowed[_from][_to].sub(_value);
+        balances[_to] = balances[_to].add(_value);        
         addLockUp(_to, _lockUpDuriation);
         emit Transfer(_from, _to, _value);
         return true;
