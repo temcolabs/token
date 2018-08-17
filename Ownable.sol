@@ -50,8 +50,10 @@ contract Ownable {
     */
     function removeOwner(address _ownership) public onlyOwner{
         require(_ownership != address(0));
+        // owner cannot remove ownerhip itself
+        require(owner[_ownership] != true);
         delete owner[_ownership];
-        emit OwnershipAdded(_ownership);
+        emit OwnershipRemoved(_ownership);
     }
 
 }
