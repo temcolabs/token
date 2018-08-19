@@ -24,6 +24,13 @@ contract Lockable is Ownable {
         require(lockedUp[msg.sender] < now || lockedUp[msg.sender] == 0 );
         _;
     }
+
+    function nolockedUp(address sender) public returns (bool){
+        if(lockedUp[sender] < now || lockedUp[sender] == 0){
+            return true; 
+        }
+        return false;                
+    }
   
     /**
     * @dev add lock up investor to mapping
