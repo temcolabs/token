@@ -169,6 +169,7 @@ contract CrowdSale is Ownable{
         amountRaised = amountRaised.add(amount);
         balances[msg.sender] = balances[msg.sender].add(amount);
         balanceList.push(msg.sender);
+        //make crowd sale end if reach goal
         if(amountRaised >= goal){
             crowdEndTime = now - 1 minutes;
         }
