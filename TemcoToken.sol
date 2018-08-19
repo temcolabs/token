@@ -89,25 +89,6 @@ contract TemcoToken is ERC20, Ownable, Lockable {
         emit Transfer(_from, _to, _value);
         return true;
     }
-  
-    /**
-    * @dev Transfer tokens from one address to another with lockup
-    * @param _from address The address which you want to send tokens from
-    * @param _to address The address which you want to transfer to
-    * @param _value the amount of tokens to be transferred
-    * @param _lockUpDuriation lock up duration for the address
-    */
-    function transferFromWithLockup(address _from, address _to, uint256 _value, uint256 _lockUpDuriation) public  onlyOwner whenNotLockedUp returns (bool) {
-        require(_to != address(0));
-        require(_to != address(this));
-        require(_value <= balances[_from]);
-                
-        balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);        
-        addLockUp(_to, _lockUpDuriation);
-        emit Transfer(_from, _to, _value);
-        return true;
-    }
 
     /**
     * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.

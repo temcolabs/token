@@ -100,8 +100,7 @@ contract CrowdSale is Ownable{
     * @param crowdDurationInDays crowd sale duration. unit is days
     * @param minEther minimum ether to receive. unit is 0.1 ether
     * @param fundingGoal funding goal for crowd sale
-    * @param rate conversion rate from ether to temco coin
-    * @param lockUp lock up duration for current sale. unit is days
+    * @param rate conversion rate from ether to temco coin    
     */
     function CrowdSale(
         address temcoAddress,
@@ -111,8 +110,7 @@ contract CrowdSale is Ownable{
         uint crowdDurationInDays,
         uint minEther,
         uint fundingGoal,
-        uint rate,
-        uint lockUp
+        uint rate        
     ) public {
         temcoTokenAddress = temcoAddress;
         temcoTokenContract = TemcoToken(temcoTokenContractAddress);
@@ -123,9 +121,7 @@ contract CrowdSale is Ownable{
         
         minimumEther = minEther * 0.1 ether;
         goal = fundingGoal;
-        conversionRate = rate;
-        
-        lockUpDuration = now + lockUp * 1 days;
+        conversionRate = rate;                
     }
     
     /**
@@ -248,22 +244,13 @@ contract CrowdSale is Ownable{
     function distribute(address _claimAddress) internal crowdSaleClosed onlyOwner{    
         require(_claimAddress != address(0));    
         require(whitelistMap[_claimAddress] == true);    
-        require(balances[_claimAddress] >= minimumEther);    
-        temcoTokenContract.transferFromWithLockup(temcoTokenAddress, _claimAddress, balances[_claimAddress].mul(conversionRate), lockUpDuration);
+        require(balances[_claimAddress] >= minimumEther);            
+        temcoTokenContract.mint(_claimAddress, balances[_claimAddress].mul(conversionRate));
         balances[_claimAddress] = balances[_claimAddress].sub(balances[_claimAddress]);
         constributedList.push(_claimAddress);        
         emit TransferCoinToInvestor(temcoTokenAddress, balances[_claimAddress].mul(conversionRate));                
     }
     
-    /**
-     * @dev Send amount raised ether to wallet
-     */
-     /**
-    function withdrawal() external crowdSaleClosed onlyOwner{
-        require(amountRaised > 0);
-        temcoEtherAddress.transfer(amountRaised);
-    }
-     */
 
     /**
      * @dev Refund amount raised ether
