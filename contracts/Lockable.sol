@@ -25,7 +25,7 @@ contract Lockable is Ownable {
         _;
     }
 
-    function nolockedUp(address sender) public returns (bool){
+    function nolockedUp(address sender) public view returns (bool){
         if(lockedUp[sender] < now || lockedUp[sender] == 0){
             return true; 
         }
@@ -34,8 +34,8 @@ contract Lockable is Ownable {
   
     /**
     * @dev add lock up investor to mapping
-    * @param investor lock up address
-    * @param duration lock up period. unit is days
+    * @param _investor lock up address
+    * @param _duration lock up period. unit is days
     */
     function addLockUp(address _investor, uint _duration ) onlyOwner public {
         require(_investor != address(0) && _duration > 0);
@@ -44,7 +44,7 @@ contract Lockable is Ownable {
     
     /**
     * @dev remove lock up address from mapping
-    * @param investor lock up address to be removed from mapping
+    * @param _investor lock up address to be removed from mapping
     */
     function removeLockUp(address _investor ) onlyOwner public {
         require(_investor != address(0));
