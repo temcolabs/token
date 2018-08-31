@@ -7,7 +7,7 @@ var TemcoToken = artifacts.require("TemcoToken.sol");
 
 module.exports = function(deployer) {
   deployer.deploy(Ownable);
-  //deployer.deploy(Lockable);
+  deployer.deploy(Lockable);
   //deployer.deploy(CrowdSale);
   //deployer.deploy(ERC20);
   //deployer.deploy(SafeMath);

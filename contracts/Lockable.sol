@@ -16,7 +16,12 @@ contract Lockable is Ownable {
     */
     mapping(address => uint256) public lockedUp;
   
-  
+    uint public nowTime;
+    
+    constructor () public {
+        nowTime = now;        
+    }
+
     /**
     * @dev lock up by pass when duration is passed or not exist on lockedUp mapping.
     */
@@ -25,6 +30,11 @@ contract Lockable is Ownable {
         _;
     }
 
+
+    /**
+    * @dev lock up status
+    * @return true - no lock up. false - locked up 
+    */
     function nolockedUp(address sender) public view returns (bool){
         if(lockedUp[sender] < now || lockedUp[sender] == 0){
             return true; 
