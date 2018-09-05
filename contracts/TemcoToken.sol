@@ -22,7 +22,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     event MintFinished();
     event Burn(address burner, uint256 value);
     
-    mapping(address => uint256) public balances;
+    mapping(address => uint256) public balances;    
     mapping (address => mapping (address => uint256)) internal allowed;
 
     uint256 public totalSupply;
@@ -35,7 +35,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     string public symbol;
     uint8 public decimals = 18;
     
-    bool public mintingFinished = false;
+    bool public mintingFinished = false;    
     
     /**
     * Constructor function
@@ -48,9 +48,10 @@ contract TemcoToken is ERC20, Ownable, Lockable {
         string tokenSymbol
     )public {
         totalSupply = initialSupply * 10 ** uint256(decimals);  // Update total supply with the decimal amount
+        emit OwnedValue(msg.sender, 0);
         balances[msg.sender] = totalSupply;                // Give the creator all initial tokens
         name = tokenName;                                   // Set the name for display purposes
-        symbol = tokenSymbol;                               // Set the symbol for display purposes
+        symbol = tokenSymbol;                             // Set the symbol for display purposes
     }
       
     /**
@@ -60,6 +61,7 @@ contract TemcoToken is ERC20, Ownable, Lockable {
     */
     function transfer(address _to, uint256 _value) public whenNotLockedUp returns (bool) {        
         emit OwnedValue(msg.sender, _value);
+                
         require(_to != address(0));
         require(_to != address(this));
         require(_value <= balances[msg.sender]); 
