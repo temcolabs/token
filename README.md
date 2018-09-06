@@ -4,3 +4,5 @@
 - TEMCO crowdsale contracts
 - Library
 - To run test : truffle test
+
+![alt text](https://github.com/temcolabs/token/blob/master/img/Sol_LogoLeft_SlateOnTrans_Small.png) 
