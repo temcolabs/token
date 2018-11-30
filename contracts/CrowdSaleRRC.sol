@@ -9,7 +9,7 @@ import "./SafeMath.sol";
  * @dev To run crowdsale. This contract communicates with Temco token contract.
  * @author Geunil(Brian) Lee
  */
-contract CrowdSale is Ownable{
+contract CrowdSaleRRC is Ownable{
     
     using SafeMath for uint256;
     
@@ -19,7 +19,7 @@ contract CrowdSale is Ownable{
     
     TemcoToken private temcoTokenContract;
     address public temcoTokenAddress;
-    address public temcoEtherAddress;
+    address public temcoRbtcAddress;
     
     /**
      * @dev Amount raised on crowdsale
@@ -40,24 +40,19 @@ contract CrowdSale is Ownable{
     uint public crowdEndTime;
     
     /**
-     * @dev Minimum ether acceptance for invest
+     * @dev Minimum rbtc acceptance for invest
      */
-    uint public minimumEther;
+    uint public minimumRbtc;
     
     /**
-     * @dev Phase ether goal
+     * @dev Phase rbtc goal
      */
     uint public goal;
     
     /**
-     * @dev Phase ether to temco token conversion rate
+     * @dev Phase rbtc to temco token conversion rate
      */
-    uint public conversionRate;
-    
-    /**
-     * @dev Lock up duration for current sale
-     */
-    uint private lockUpDuration;    
+    uint public conversionRate;        
     
     /**
      * @dev Hold who and how much invest on phase
@@ -73,7 +68,7 @@ contract CrowdSale is Ownable{
     function getBalanceList() public view returns (address[]) {
         return balanceList;
     }
-
+    
     /**
      * @dev KYC whitelist
      */
@@ -95,31 +90,31 @@ contract CrowdSale is Ownable{
     * 
     * @param temcoAddress temco token address
     * @param temcoTokenContractAddress temco token contract address
-    * @param etherAddress wallet to transfer amount raised
+    * @param rbtcAddress wallet to transfer amount raised
     * @param crowdStartInDays crowd sale start time. unit is days
     * @param crowdDurationInDays crowd sale duration. unit is days
-    * @param minEther minimum ether to receive. unit is 0.1 ether
+    * @param minRbtc minimum rbtc to receive. unit is 0.0001 rbtc
     * @param fundingGoal funding goal for crowd sale
-    * @param rate conversion rate from ether to temco coin    
+    * @param rate conversion rate from rbtc to temco coin    
     */
     constructor (
         address temcoAddress,
         address temcoTokenContractAddress,
-        address etherAddress,
+        address rbtcAddress,
         uint crowdStartInDays,
         uint crowdDurationInDays,
-        uint minEther,
+        uint minRbtc,
         uint fundingGoal,
         uint rate        
     ) public {
         temcoTokenAddress = temcoAddress;
         temcoTokenContract = TemcoToken(temcoTokenContractAddress);
-        temcoEtherAddress = etherAddress;
+        temcoRbtcAddress = rbtcAddress;
         
         crowdStartTime = now + crowdStartInDays * 1 days;
         crowdEndTime = crowdStartTime + crowdDurationInDays * 1 days;
-        
-        minimumEther = minEther * 0.1 ether;
+        //ether and rbtc both 18 decimal
+        minimumRbtc = minRbtc * 0.0001 ether;
         goal = fundingGoal * 1 ether;
         conversionRate = rate;                
     }
@@ -128,7 +123,7 @@ contract CrowdSale is Ownable{
     * @dev Reverts if not in crowdsale time range. 
     */
     modifier onlyWhileOpen {
-        require((now >= crowdStartTime && now < crowdEndTime) || (amountRaised < goal));
+        require((now >= crowdStartTime && now < crowdEndTime) && (amountRaised < goal));
         _;
     }
    
@@ -139,12 +134,19 @@ contract CrowdSale is Ownable{
         require(now > crowdEndTime || amountRaised >= goal);
         _;
     }
+
+    /**
+    * @dev support purpose
+    */
+    function isCrowdSaleClosed() public view returns (bool){
+        return (now > crowdEndTime || amountRaised >= goal);        
+    }
    
     /**
-    * @dev Reverts if not match minimum ether amount
+    * @dev Reverts if not match minimum rbtc amount
     */
-    modifier minimumEtherRequired{
-        require( msg.value >= minimumEther);
+    modifier minimumRbtcRequired{
+        require( msg.value >= minimumRbtc);
         _;
     }
 
@@ -161,7 +163,7 @@ contract CrowdSale is Ownable{
     *
     * The function without name is the default function that is called whenever anyone sends funds to a contract
     */
-    function () payable public onlyWhileOpen minimumEtherRequired {
+    function () payable public onlyWhileOpen minimumRbtcRequired {
         require(msg.sender != address(0));
         require(msg.sender != address(this));
         uint amount = msg.value;
@@ -170,12 +172,13 @@ contract CrowdSale is Ownable{
         balances[msg.sender] = balances[msg.sender].add(amount);
         balanceList.push(msg.sender);
         //make crowd sale end if reach goal
-        if(amountRaised >= goal){
-            crowdEndTime = now - 1 minutes;
-        }
+        //not necessary this momment
+        //if(amountRaised >= goal){
+        //    crowdEndTime = now - 1 minutes;
+        //}
 
-        // Transfer raised ether right a way to wallet. This will avoid any loss of funds in cased of faliure.
-        temcoEtherAddress.transfer(amount);
+        // Transfer raised rbtc right a way to wallet. This will avoid any loss of funds in cased of faliure.
+        //temcoRbtcAddress.transfer(amount);
         
         emit Received(msg.sender, amount); 
 		
@@ -231,44 +234,46 @@ contract CrowdSale is Ownable{
      *      nextPayeeIndex keeps track of how far gone.
      */
     function distributeCoins(uint startIndex, uint endIndex) external crowdSaleClosed onlyOwner{        
-        for (uint index = startIndex; index < endIndex ; index++){
-            if(whitelistMap[balanceList[index]] != true && balances[balanceList[index]] > 0){                                
+        for (uint index = startIndex; index <= endIndex ; index++){
+            if(whitelistMap[balanceList[index]] == true && balances[balanceList[index]] > 0){                                
                 distribute(balanceList[index]);                
             }            
         }
     }
-
-    function distributeCoin(address _claimAddress) external crowdSaleClosed onlyOwner{            
-        distribute(_claimAddress);        
-    }
-
-    function distribute(address _claimAddress) internal crowdSaleClosed onlyOwner{    
-        require(_claimAddress != address(0));    
-        require(whitelistMap[_claimAddress] == true);    
-        require(balances[_claimAddress] >= minimumEther);            
-        temcoTokenContract.mint(_claimAddress, balances[_claimAddress].mul(conversionRate));
-        balances[_claimAddress] = balances[_claimAddress].sub(balances[_claimAddress]);
-        constributedList.push(_claimAddress);        
-        emit TransferCoinToInvestor(temcoTokenAddress, balances[_claimAddress].mul(conversionRate));                
+    
+    function distribute(address _claimAddress) public crowdSaleClosed onlyOwner{                 
+        if(whitelistMap[_claimAddress] == true && balances[_claimAddress] >= minimumRbtc){
+            temcoTokenContract.mintTo(temcoTokenAddress, _claimAddress, balances[_claimAddress].mul(conversionRate));
+            balances[_claimAddress] = balances[_claimAddress].sub(balances[_claimAddress]);
+            constributedList.push(_claimAddress);        
+            emit TransferCoinToInvestor(temcoTokenAddress, balances[_claimAddress].mul(conversionRate));                
+        }     
     }
     
 
     /**
-     * @dev Refund amount raised ether
+     * @dev Refund amount raised rbtc
      */
     function refund(address _claimAddress, uint refundAmount) external onlyOwner{
-        require(_claimAddress != address(0));    
-        require(whitelistMap[_claimAddress] == true);    
+        require(_claimAddress != address(0));            
         require(balances[_claimAddress] >= 0);
         _claimAddress.transfer(refundAmount);
         emit Refund(_claimAddress, refundAmount);
     }    
 
     /**
+     * @dev withdrawal amount raised 
+     */
+    function withdrawal() external onlyOwner {
+        emit TransferCoinToInvestor(temcoRbtcAddress, amountRaised);
+        temcoRbtcAddress.transfer(amountRaised);                
+    }
+
+    /**
      * @dev Stop crowd sale in case of emergency
      */
     function stopCrowdSale() external onlyOwner{        
         crowdEndTime = now;
-    }
+    }    
     
 }

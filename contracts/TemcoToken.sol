@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
 import "./ERC20.sol";
@@ -197,6 +197,21 @@ contract TemcoToken is ERC20, Ownable, Lockable {
         require(_to != address(0) && _amount > 0);
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
+        emit Mint(_to, _amount);
+        emit Transfer(address(0), _to, _amount);
+        return true;
+    }
+
+    /**
+    * @dev Function to mint tokens
+    * @param _to The address that will receive the minted tokens.
+    * @param _amount The amount of tokens to mint.
+    * @return A boolean that indicates if the operation was successful.
+    */
+    function mintTo(address _from, address _to, uint256 _amount) onlyOwner canMint external returns (bool) {
+        require(_from != address(0)  && _to != address(0) && _amount > 0);        
+        balances[_from] = balances[_from].sub(_amount);
+        balances[_to] = balances[_to].add(_amount);        
         emit Mint(_to, _amount);
         emit Transfer(address(0), _to, _amount);
         return true;
