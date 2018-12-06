@@ -243,8 +243,7 @@ contract CrowdSaleRRC is Ownable{
     
     function distribute(address _claimAddress) public crowdSaleClosed onlyOwner{                 
         if(whitelistMap[_claimAddress] == true && balances[_claimAddress] >= minimumRbtc){
-            temcoTokenContract.mintTo(temcoTokenAddress, _claimAddress, balances[_claimAddress].mul(conversionRate));
-            balances[_claimAddress] = balances[_claimAddress].sub(balances[_claimAddress]);
+            temcoTokenContract.mintTo(temcoTokenAddress, _claimAddress, balances[_claimAddress].mul(conversionRate));            
             constributedList.push(_claimAddress);        
             emit TransferCoinToInvestor(temcoTokenAddress, balances[_claimAddress].mul(conversionRate));                
         }     
