@@ -248,16 +248,19 @@ contract CrowdSaleRRC is Ownable{
             emit TransferCoinToInvestor(temcoTokenAddress, balances[_claimAddress].mul(conversionRate));                
         }     
     }
+
+    function updateConversionRate(uint rate) external onlyOwner {
+        conversionRate = rate;
+    }
     
 
     /**
      * @dev Refund amount raised rbtc
      */
-    function refund(address _claimAddress, uint refundAmount) external onlyOwner{
-        require(_claimAddress != address(0));            
-        require(balances[_claimAddress] >= 0);
-        _claimAddress.transfer(refundAmount);
-        emit Refund(_claimAddress, refundAmount);
+    function refund(address _claimAddress) external onlyOwner{
+        require(_claimAddress != address(0));                    
+        _claimAddress.transfer(balances[_claimAddress]);
+        emit Refund(_claimAddress, balances[_claimAddress]);
     }    
 
     /**
@@ -269,7 +272,7 @@ contract CrowdSaleRRC is Ownable{
     }
 
     /**
-     * @dev Stop crowd sale in case of emergency
+     * @dev Stop crowd sale
      */
     function stopCrowdSale() external onlyOwner{        
         crowdEndTime = now;
