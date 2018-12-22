@@ -171,14 +171,6 @@ contract CrowdSaleRRC is Ownable{
         amountRaised = amountRaised.add(amount);
         balances[msg.sender] = balances[msg.sender].add(amount);
         balanceList.push(msg.sender);
-        //make crowd sale end if reach goal
-        //not necessary this momment
-        //if(amountRaised >= goal){
-        //    crowdEndTime = now - 1 minutes;
-        //}
-
-        // Transfer raised rbtc right a way to wallet. This will avoid any loss of funds in cased of faliure.
-        //temcoRbtcAddress.transfer(amount);
         
         emit Received(msg.sender, amount); 
 		
