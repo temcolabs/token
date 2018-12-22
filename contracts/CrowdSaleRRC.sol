@@ -114,7 +114,7 @@ contract CrowdSaleRRC is Ownable{
         crowdStartTime = now + crowdStartInDays * 1 days;
         crowdEndTime = crowdStartTime + crowdDurationInDays * 1 days;
         //ether and rbtc both 18 decimal
-        minimumRbtc = minRbtc * 0.0001 ether;
+        minimumRbtc = minRbtc * 0.002 ether;
         goal = fundingGoal * 1 ether;
         conversionRate = rate;                
     }
