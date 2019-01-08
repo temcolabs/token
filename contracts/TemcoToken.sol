@@ -14,9 +14,7 @@ import "./Lockable.sol";
 contract TemcoToken is ERC20, Ownable, Lockable {
   
     using SafeMath for uint256;
-  
-    event Approval(address owner, address spender, uint256 value);
-    event Transfer(address from, address to, uint256 value);
+      
     event OwnedValue(address owner, uint256 value);
     event Mint(address to, uint256 amount);
     event MintFinished();
