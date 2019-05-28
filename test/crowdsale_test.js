@@ -98,6 +98,5 @@ contract('CrowdSale', accounts=> {
       assert.equal(false, whitelistStatus, "account 1 is not in whitelist");      
     });
   });
-   */  
-  
+   */    
 });
