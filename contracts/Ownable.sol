@@ -55,5 +55,5 @@ contract Ownable {
         delete owner[_ownership];
         emit OwnershipRemoved(_ownership);
     }
-
+ 
 }
