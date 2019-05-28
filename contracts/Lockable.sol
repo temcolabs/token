@@ -61,5 +61,5 @@ contract Lockable is Ownable {
         delete lockedUp[_investor]; 
     }
   
-  
+   
 }
