@@ -6,3 +6,5 @@
 - Library
 - To run test : truffle test
 
+- Second Audit link
+[[HAECHI LABS] TEMCO Smart Contract Audit Report v.2.0.pdf](https://github.com/temcolabs/token/files/9562982/HAECHI.LABS.TEMCO.Smart.Contract.Audit.Report.v.2.0.pdf)
